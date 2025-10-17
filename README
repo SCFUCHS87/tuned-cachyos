@@ -1,0 +1,165 @@
+ChatGPT said:
+CachyOS Tuned Profiles
+
+Six opinionated Tuned profiles tailored for CachyOS on modern AMD/Intel laptops & desktops. The set is split into AC (plugged-in) and Battery (unplugged) variants and uses bytes-mode dirty write thresholds for predictable I/O behavior on SSD/NVMe.
+
+Profiles
+AC (plugged-in)
+
+throughput-performance-cachyos
+Plugged-in gaming & heavy builds. Max clocks, turbo on, aggressive I/O.
+
+laptop-ac-balanced-cachyos
+Snappy daily driver on AC. Schedutil + EPP balance_performance, turbo on.
+
+laptop-ac-powersaver-cachyos
+Cool & quiet on AC. Caps peak, disables turbo for lower fan noise.
+
+Battery (unplugged)
+
+balanced-cachyos
+Good runtime while staying responsive. Caps turbo; balanced power.
+
+battery-balanced-cachyos
+Extra savings. Lower max perf %, turbo off.
+
+laptop-battery-powersaver-cachyos
+Max runtime. Most conservative limits; turbo off.
+
+What these profiles change
+
+CPU policy: governor, EPP bias, min/max perf %, turbo (via Tuned’s cpu plugin).
+
+Memory/VM tuning: transparent_hugepages + bytes-mode dirty limits (vm.dirty_background_bytes, vm.dirty_bytes) and vm.swappiness per profile.
+
+(Selective) kernel toggles like kernel.nmi_watchdog=0 in performance/low-latency cases.
+
+Bytes-mode dirty tunables avoid ratio ambiguity and pair well with SSD/NVMe.
+
+Requirements
+
+CachyOS (or Arch-based) with a modern kernel.
+
+Tuned installed and enabled:
+
+sudo pacman -S tuned
+sudo systemctl enable --now tuned
+
+Install
+
+Clone this repo and copy the six profile directories to a Tuned search path.
+
+Option A (recommended, local overrides)
+sudo mkdir -p /etc/tuned
+sudo cp -r profiles/*-cachyos /etc/tuned/
+sudo systemctl restart tuned
+
+Option B (vendor-style, system-wide)
+sudo mkdir -p /usr/lib/tuned
+sudo cp -r profiles/*-cachyos /usr/lib/tuned/
+sudo systemctl restart tuned
+
+
+Note: Tuned searches /etc/tuned/ (overrides) and /usr/lib/tuned/. Do not add an extra profiles/ level unless your distro expects it. If you do, restart Tuned so it rescans.
+
+Verify:
+
+tuned-adm list
+
+
+You should see the six *-cachyos profiles alongside the stock ones.
+
+Use
+
+Activate any profile:
+
+sudo tuned-adm profile laptop-ac-balanced-cachyos
+tuned-adm active
+
+
+Confirm key live values:
+
+sysctl -n vm.swappiness vm.dirty_background_bytes vm.dirty_bytes
+cat /sys/devices/system/cpu/amd_pstate/status 2>/dev/null || true
+grep -H . /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor | sort
+
+Optional: automatic AC/Battery switching
+
+If you want auto-switching (no KDE/PPD involved), you can pair these with a small udev+systemd helper that calls tuned-adm profile … on plug/unplug. Example mapping:
+
+On AC: laptop-ac-balanced-cachyos
+
+On Battery: balanced-cachyos (or your preferred battery profile)
+
+We keep this out of the core profiles to avoid surprising behavior; see extras/auto-switch/ (or open an issue and we’ll include a ready-to-use script/service).
+
+Compatibility & notes
+
+Power Profiles Daemon (PPD), TLP, cpupower, Powertop autotune can override CPU/PM settings. If you want Tuned to be the single source of truth, disable/mask those services.
+
+CachyOS ships a vendor sysctl file (e.g., 99-cachyos-settings.conf).
+
+This repo’s profiles set vm.swappiness and dirty bytes explicitly per profile, so you don’t need local /etc/sysctl.d entries for those.
+
+If you already set vm.swappiness or vm.dirty_* in /etc/sysctl.d/*, consider commenting them out to avoid conflicts. Tuned applies at service start/profile switch and “wins” after boot.
+
+Directory layout
+.
+├── profiles/
+│   ├── throughput-performance-cachyos/
+│   │   └── tuned.conf
+│   ├── laptop-ac-balanced-cachyos/
+│   │   └── tuned.conf
+│   ├── laptop-ac-powersaver-cachyos/
+│   │   └── tuned.conf
+│   ├── balanced-cachyos/
+│   │   └── tuned.conf
+│   ├── battery-balanced-cachyos/
+│   │   └── tuned.conf
+│   └── laptop-battery-powersaver-cachyos/
+│       └── tuned.conf
+└── README.md
+
+Troubleshooting
+
+Profiles don’t show up:
+
+Ensure they’re direct children of /etc/tuned/ or /usr/lib/tuned/ (no extra nesting).
+
+sudo systemctl restart tuned then tuned-adm list.
+
+KDE shows power profiles but switching doesn’t seem to work:
+
+If PPD is disabled/masked, KDE’s UI won’t alter system-wide CPU policy. Use Tuned instead.
+
+Values flip after reboot:
+
+Check for duplicate keys in /etc/sysctl.d/*.conf.
+
+Confirm conflicting services are disabled:
+systemctl status power-profiles-daemon tlp cpupower powertop-autotune | cat
+
+Contributing
+
+PRs welcome! Please:
+
+Keep changes minimal and well-scoped.
+
+Test on both AMD (amd_pstate) and Intel p-state hosts when possible.
+
+Prefer bytes-mode for dirty settings.
+
+License
+
+MIT — see LICENSE.
+
+Quick start (TL;DR)
+git clone https://github.com/<you>/<repo>.git
+cd <repo>
+sudo cp -r profiles/*-cachyos /etc/tuned/
+sudo systemctl restart tuned
+tuned-adm list
+sudo tuned-adm profile laptop-ac-balanced-cachyos
+
+
+Enjoy sane, predictable performance on CachyOS—on AC and on battery.

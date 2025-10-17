@@ -1,0 +1,47 @@
+# --- General system files ---
+*.swp
+*.bak
+*.tmp
+*~
+.DS_Store
+Thumbs.db
+
+# --- Linux system noise ---
+/etc/
+/var/
+/tmp/
+*.pid
+*.lock
+
+# --- Logs and cache ---
+*.log
+*.cache
+*.old
+*.out
+
+# --- Editor/IDE files ---
+.vscode/
+.idea/
+*.iml
+
+# --- Build and package artifacts ---
+*.tar
+*.gz
+*.zip
+*.xz
+*.deb
+*.rpm
+
+# --- Python or shell environments (if used for testing) ---
+venv/
+.env/
+__pycache__/
+*.pyc
+
+# --- Git itself ---
+#.gitignore
+.gitmodules
+
+# --- Custom tuned paths ---
+/usr/lib/tuned/profiles/*
+!profiles/*-cachyos/

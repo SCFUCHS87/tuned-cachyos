@@ -1,4 +1,3 @@
-ChatGPT said:
 CachyOS Tuned Profiles
 
 Six opinionated Tuned profiles tailored for CachyOS on modern AMD/Intel laptops & desktops. The set is split into AC (plugged-in) and Battery (unplugged) variants and uses bytes-mode dirty write thresholds for predictable I/O behavior on SSD/NVMe.

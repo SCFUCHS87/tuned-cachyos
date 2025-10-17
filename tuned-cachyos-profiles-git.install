@@ -1,0 +1,14 @@
+post_install() {
+  cat <<'EOF'
+==> CachyOS TuneD profiles installed under /etc/tuned/profiles
+• Enable tuned (if not already):  sudo systemctl enable --now tuned
+• List profiles:                   tuned-adm list
+• Activate a profile:              sudo tuned-adm profile <profile-name>
+Note: These are in /etc so your local edits persist. Consider adding your profile tuned.conf
+to the PKGBUILD 'backup=()' array once names are stable.
+EOF
+}
+
+post_upgrade() {
+  post_install
+}

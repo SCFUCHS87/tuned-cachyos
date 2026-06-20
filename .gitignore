@@ -46,3 +46,11 @@ __pycache__/
 /usr/lib/tuned/profiles/*
 !profiles/*-cachyos/
 CHANGELOG-stability-fixes.md
+
+# --- Personal notes and drafts ---
+reddit-*.md
+draft-*.md
+notes-*.md
+*.draft
+NOTES.md
+DRAFT.md

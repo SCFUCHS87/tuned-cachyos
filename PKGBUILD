@@ -1,6 +1,6 @@
 # Maintainer: Steven Fuchs <stevencfuchs@icloud.com>
 pkgname=tuned-cachyos-profiles-git
-pkgver=r14.109804c
+pkgver=r15.9ebe2fb
 pkgrel=1
 pkgdesc="CachyOS-flavored TuneD profiles installed under /etc/tuned/profiles/"
 arch=('any')

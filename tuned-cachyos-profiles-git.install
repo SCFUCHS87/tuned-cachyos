@@ -53,7 +53,7 @@ post_install() {
     /etc/tuned/ppd.conf.tuned-cachyos.bak
 
   Enable TuneD if not already running:
-    sudo systemctl enable --now tuned
+    sudo systemctl enable --now tuned tuned-ppd
 
   TuneD will pick up the active PPD state automatically via ppd.conf.
   No manual profile switching needed if you use KDE PowerDevil.

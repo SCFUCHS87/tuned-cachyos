@@ -1,6 +1,6 @@
 pkgbase = tuned-cachyos-profiles-git
 	pkgdesc = CachyOS-flavored TuneD profiles installed under /etc/tuned/profiles/
-	pkgver = r20.9ac0ce1
+	pkgver = r23.15fbdb4
 	pkgrel = 1
 	url = https://github.com/SCFUCHS87/tuned-cachyos
 	install = tuned-cachyos-profiles-git.install

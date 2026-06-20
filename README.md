@@ -85,7 +85,7 @@ makepkg -si
 ### Enable and start TuneD
 
 ```bash
-sudo systemctl enable --now tuned
+sudo systemctl enable --now tuned tuned-ppd
 ```
 
 TuneD will pick up the active PPD state automatically via `ppd.conf`. No manual profile switching needed if you use KDE PowerDevil.

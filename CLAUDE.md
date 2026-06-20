@@ -24,29 +24,49 @@ Verify CPU settings took effect:
 ```bash
 cat /sys/devices/system/cpu/cpufreq/boost
 cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor | sort -u
+cat /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference | sort -u
 ```
 
 ## Profile architecture
 
 Each profile is a single `tuned.conf` that `include=`s an upstream TuneD base profile, then overrides specific sections (`[cpu]`, `[vm]`, `[sysctl]`).
 
-| Profile | Use case |
-|---|---|
-| `balanced-cachyos` | General desktop/laptop, good efficiency |
-| `battery-balanced-cachyos` | Laptop on battery, responsive |
-| `laptop-ac-balanced-cachyos` | Laptop plugged in, balanced |
-| `laptop-ac-powersaver-cachyos` | Plugged in but thermal/fan limited |
-| `laptop-battery-powersaver-cachyos` | Maximum battery life |
-| `throughput-performance-cachyos` | Desktop/gaming, max clocks |
+Profiles are wired to KDE PowerDevil via `/etc/tuned/ppd.conf`, which maps PPD states to TuneD profiles separately for AC and battery:
+
+| PPD state | On AC | On battery |
+|---|---|---|
+| `performance` | `throughput-performance-cachyos` | `balanced-cachyos` |
+| `balanced` | `laptop-ac-balanced-cachyos` | `battery-balanced-cachyos` |
+| `power-saver` | `laptop-ac-powersaver-cachyos` | `laptop-battery-powersaver-cachyos` |
+
+KDE PowerDevil defaults: AC → `performance`, Battery → `power-saver`.
+
+| Profile | Role | EPP |
+|---|---|---|
+| `throughput-performance-cachyos` | Gaming/compute, no limits | `performance` |
+| `laptop-ac-balanced-cachyos` | AC balanced, snappy + efficient | `balance_performance` |
+| `laptop-ac-powersaver-cachyos` | AC powersaver, cool & quiet | `balance_power` |
+| `balanced-cachyos` | Performance on battery | `balance_performance` |
+| `battery-balanced-cachyos` | Balanced on battery | `balance_power` |
+| `laptop-battery-powersaver-cachyos` | Max battery life | `power` |
 
 ## Scripts
 
-`scripts/pre-apply.sh` and `scripts/post-apply.sh` at the repo root are fanned out by `PKGBUILD` to **every** profile's `scripts/` subdirectory during packaging. Per-profile scripts go under `etc/tuned/profiles/<name>/scripts/` instead.
+`scripts/` at the repo root is fanned out by `PKGBUILD` to **every** profile's `scripts/` subdirectory during packaging. Currently contains `pci-pm.sh`, which sets PCI/USB runtime PM and `snd_hda_intel` audio power save on profile start, and restores `on` on stop. Profiles reference it via `${i:PROFILE_DIR}/scripts/pci-pm.sh`.
+
+For manual installs (no `makepkg`), copy `scripts/pci-pm.sh` to each profile's `scripts/` dir by hand:
+```bash
+for p in battery-balanced-cachyos laptop-ac-balanced-cachyos laptop-ac-powersaver-cachyos laptop-battery-powersaver-cachyos; do
+  sudo install -Dm755 scripts/pci-pm.sh /etc/tuned/profiles/$p/scripts/pci-pm.sh
+done
+```
+
+Per-profile-specific scripts go under `etc/tuned/profiles/<name>/scripts/` instead of the root `scripts/`.
 
 ## Key design decisions
 
 - **`turbo=1` is intentional even in power-saving profiles.** On AMD Ryzen APUs, disabling turbo causes hangs and crashes when the iGPU and CPU compete for the shared power budget. The "race to sleep" principle means short bursts are more efficient than throttled-and-hung states. See `CHANGELOG-stability-fixes.md` for the full rationale.
-- **`amd_pstate=guided` is assumed** — `max_perf_pct`/`min_perf_pct` are the primary power controls, not hard governor locks.
+- **Driver is `amd-pstate-epp`** (confirmed on Ryzen 5 7535HS). Only `powersave` and `performance` governors are available — `schedutil` is not valid and will warn/no-op. Use `governor=powersave` for all efficiency profiles, `governor=performance` only for `throughput-performance-cachyos`. The primary power control is `energy_performance_preference=` (not `energy_perf_bias=`, which is Intel-only). `max_perf_pct`/`min_perf_pct` still work as hard frequency bounds on top of EPP.
 - All `tuned.conf` files are in pacman's `backup=()` list so user edits survive package upgrades as `.pacnew` files.
 
 ## .gitignore quirk

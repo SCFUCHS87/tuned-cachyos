@@ -67,6 +67,37 @@ done
 
 Per-profile-specific scripts go under `etc/tuned/profiles/<name>/scripts/` instead of the root `scripts/`.
 
+## What to update when you change things
+
+**Changing a profile's tuning values (`tuned.conf`):**
+- Update the profile file under `etc/tuned/profiles/<name>/tuned.conf`
+- Update the profile details table in `README.md` if EPP, governor, or swappiness changed
+- Update the profile table in `CLAUDE.md` if the role or EPP changed
+
+**Adding or removing a profile:**
+- Add/remove the profile directory under `etc/tuned/profiles/`
+- Add/remove it from `backup=()` in `PKGBUILD`
+- Regenerate `.SRCINFO`: `makepkg --printsrcinfo > .SRCINFO`
+- Update the ppd.conf mappings in `tuned-cachyos-profiles-git.install`
+- Update the PPD mapping tables in `README.md` and `CLAUDE.md`
+- Update `AGENTS.md` if the structure description changes
+
+**Changing the PPD mappings (which profile maps to which PPD state):**
+- Update the `cat > "$ppd_conf"` block inside `_configure_ppd()` in `tuned-cachyos-profiles-git.install`
+- Update the PPD mapping tables in `README.md` and `CLAUDE.md`
+
+**Changing `PKGBUILD` (deps, options, package logic):**
+- Always regenerate `.SRCINFO` afterwards: `makepkg --printsrcinfo > .SRCINFO`
+- Commit both files together
+
+**Changing `scripts/pci-pm.sh`:**
+- Update the Scripts section in `CLAUDE.md` if behavior changes
+- Copy to live profiles manually for testing, or rebuild with `makepkg -si`
+
+**Changing the install script (`tuned-cachyos-profiles-git.install`):**
+- Update the ppd.conf lifecycle description in `CLAUDE.md` and `README.md`
+- Update the Testing Guidelines in `AGENTS.md`
+
 ## Key design decisions
 
 - **`boost=1` is intentional even in power-saving profiles.** On AMD Ryzen APUs, disabling turbo causes hangs and crashes when the iGPU and CPU compete for the shared power budget. The "race to sleep" principle means short bursts are more efficient than throttled-and-hung states. Note: the TuneD CPU plugin option is `boost=` (not `turbo=` — that is silently ignored).

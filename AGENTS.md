@@ -22,6 +22,20 @@ Use shell-compatible style in scripts: two-space indentation inside functions an
 
 There is no automated test suite. Validate by building with `makepkg -si`, switching profiles with `tuned-adm`, and checking CPU governor, boost, EPP, and sysctl values. For packaging changes, inspect generated contents and refresh `.SRCINFO`. Confirm the package does not own `/etc/tuned/ppd.conf`; the install script should back up foreign configs on install, preserve managed configs on upgrade, restore backups only when safe, and leave unrelated files untouched.
 
+## Change Checklist
+
+Always keep these files in sync — stale docs or metadata are a common failure mode.
+
+| What changed | Also update |
+|---|---|
+| Profile tuning values (`tuned.conf`) | `README.md` profile details table if EPP/governor/swappiness changed |
+| Profile added or removed | `PKGBUILD` `backup=()`, `.SRCINFO` (regenerate), install script `_configure_ppd`, PPD tables in `README.md` and `CLAUDE.md` |
+| PPD mappings in install script | PPD mapping tables in `README.md` and `CLAUDE.md` |
+| `PKGBUILD` (any change) | Always regenerate `.SRCINFO` with `makepkg --printsrcinfo > .SRCINFO` and commit both together |
+| `scripts/pci-pm.sh` behavior | Scripts section in `CLAUDE.md` |
+| Install script behavior | ppd.conf lifecycle description in `CLAUDE.md` and `README.md`; Testing Guidelines in `AGENTS.md` |
+| `CLAUDE.md` workflow or architecture | Mirror relevant changes in `AGENTS.md` and vice versa |
+
 ## Commit & Pull Request Guidelines
 
 Recent commits use short imperative summaries, for example `Bump pkgver to r15.9ebe2fb, regenerate .SRCINFO`. Keep commits focused: profile behavior, packaging metadata, scripts, or docs. Pull requests should explain the affected profile or packaging path, include validation commands run, and mention any hardware assumptions such as AMD `amd-pstate-epp`.

@@ -1,14 +1,47 @@
-post_install() {
+_configure_ppd() {
+  ppd_conf=/etc/tuned/ppd.conf
+  backup_conf=/etc/tuned/ppd.conf.tuned-cachyos.bak
+
+  if [ -e "$ppd_conf" ] && ! grep -q 'laptop-battery-powersaver-cachyos' "$ppd_conf"; then
+    if [ ! -e "$backup_conf" ]; then
+      cp -a "$ppd_conf" "$backup_conf"
+    fi
+  fi
+
+  install -d /etc/tuned
+  cat > "$ppd_conf" <<'EOF'
+[main]
+# The default PPD profile
+default=balanced
+battery_detection=true
+sysfs_acpi_monitor=false
+
+[profiles]
+# PPD = TuneD
+power-saver=laptop-ac-powersaver-cachyos
+balanced=laptop-ac-balanced-cachyos
+performance=throughput-performance-cachyos
+
+[battery]
+# PPD = TuneD
+power-saver=laptop-battery-powersaver-cachyos
+balanced=battery-balanced-cachyos
+performance=balanced-cachyos
+EOF
+}
+
+_print_post_install() {
   cat <<'EOF'
 ==> tuned-cachyos-profiles installed
 
   Enable TuneD if not already running:
     sudo systemctl enable --now tuned
 
-  If you use KDE with PowerDevil, profile switching is automatic —
-  KDE's power settings (performance / balanced / power-saver) map to
-  the correct profile for your AC or battery state via /etc/tuned/ppd.conf.
-  No manual activation needed.
+  KDE PowerDevil / PPD mapping has been configured in:
+    /etc/tuned/ppd.conf
+
+  If an existing non-CachyOS ppd.conf was present, it was backed up to:
+    /etc/tuned/ppd.conf.tuned-cachyos.bak
 
   To activate a profile manually:
     sudo tuned-adm profile <profile-name>
@@ -25,4 +58,33 @@ post_install() {
 EOF
 }
 
-post_upgrade() { post_install; }
+post_install() {
+  _configure_ppd
+  _print_post_install
+}
+
+post_upgrade() {
+  _configure_ppd
+  _print_post_install
+}
+
+post_remove() {
+  ppd_conf=/etc/tuned/ppd.conf
+  backup_conf=/etc/tuned/ppd.conf.tuned-cachyos.bak
+
+  if [ -e "$backup_conf" ]; then
+    cp -a "$backup_conf" "$ppd_conf"
+    cat <<'EOF'
+==> Restored previous /etc/tuned/ppd.conf from:
+    /etc/tuned/ppd.conf.tuned-cachyos.bak
+EOF
+  else
+    cat <<'EOF'
+==> tuned-cachyos-profiles removed
+
+  /etc/tuned/ppd.conf may still reference CachyOS TuneD profiles.
+  Reinstall tuned-ppd or edit /etc/tuned/ppd.conf if KDE PowerDevil
+  profile switching stops working.
+EOF
+  fi
+}

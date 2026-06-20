@@ -21,7 +21,7 @@ PPD gives you three generic states. TuneD gives you:
 
 ## Profile map
 
-TuneD integrates with PPD via `/etc/tuned/ppd.conf`. KDE PowerDevil switches PPD states (performance / balanced / power-saver), and TuneD maps those to the right profile based on whether you are on AC or battery:
+TuneD integrates with PPD via `/etc/tuned/ppd.conf`. KDE PowerDevil switches PPD states (performance / balanced / power-saver), and TuneD maps those to the right profile based on whether you are on AC or battery. The `tuned-ppd` package owns that file; this package configures the CachyOS mapping during install and backs up an existing non-CachyOS file as `/etc/tuned/ppd.conf.tuned-cachyos.bak`.
 
 | PPD state    | On AC                          | On battery                         |
 |---|---|---|
@@ -106,7 +106,7 @@ sysctl vm.swappiness
 
 ## Requirements
 
-- `tuned` (dependency, installed automatically)
+- `tuned` and `tuned-ppd` (dependencies, installed automatically)
 - AMD CPU with `amd-pstate-epp` driver (`/sys/devices/system/cpu/amd_pstate/status` should read `active`)
 - KDE / PowerDevil for automatic profile switching (optional — profiles work standalone too)
 

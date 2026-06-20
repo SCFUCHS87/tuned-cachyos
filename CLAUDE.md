@@ -16,6 +16,7 @@ makepkg --printsrcinfo > .SRCINFO   # regenerate .SRCINFO for AUR submission
 Manual apply without packaging (for quick testing):
 ```bash
 sudo cp -r etc/tuned/profiles/* /etc/tuned/profiles/
+sudo sh -c '. ./tuned-cachyos-profiles-git.install; _configure_ppd'
 sudo tuned-adm profile <profile-name>
 tuned-adm active
 ```
@@ -31,7 +32,7 @@ cat /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference | sort -u
 
 Each profile is a single `tuned.conf` that `include=`s an upstream TuneD base profile, then overrides specific sections (`[cpu]`, `[vm]`, `[sysctl]`).
 
-Profiles are wired to KDE PowerDevil via `/etc/tuned/ppd.conf`, which maps PPD states to TuneD profiles separately for AC and battery:
+Profiles are wired to KDE PowerDevil via `/etc/tuned/ppd.conf`, which maps PPD states to TuneD profiles separately for AC and battery. `tuned-ppd` owns that file, so this package does not install it as a payload file. Instead, `tuned-cachyos-profiles-git.install` configures the mapping on install/upgrade and backs up an existing non-CachyOS file to `/etc/tuned/ppd.conf.tuned-cachyos.bak`.
 
 | PPD state | On AC | On battery |
 |---|---|---|

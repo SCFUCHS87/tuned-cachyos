@@ -1,6 +1,6 @@
 pkgbase = tuned-cachyos-profiles-git
 	pkgdesc = CachyOS-flavored TuneD profiles installed under /etc/tuned/profiles/
-	pkgver = r19.2a065d7
+	pkgver = r20.9ac0ce1
 	pkgrel = 1
 	url = https://github.com/SCFUCHS87/tuned-cachyos
 	install = tuned-cachyos-profiles-git.install
@@ -10,7 +10,6 @@ pkgbase = tuned-cachyos-profiles-git
 	depends = tuned
 	depends = tuned-ppd
 	options = !strip
-	backup = etc/tuned/ppd.conf
 	backup = etc/tuned/profiles/balanced-cachyos/tuned.conf
 	backup = etc/tuned/profiles/battery-balanced-cachyos/tuned.conf
 	backup = etc/tuned/profiles/laptop-ac-balanced-cachyos/tuned.conf

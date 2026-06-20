@@ -2,7 +2,9 @@
 
 ## Project Structure & Module Organization
 
-This repository packages CachyOS-specific TuneD profiles for Arch/AUR as `tuned-cachyos-profiles-git`. The package entry points are `PKGBUILD`, `.SRCINFO`, and `tuned-cachyos-profiles-git.install`. Profile sources live in `etc/tuned/profiles/<profile-name>/tuned.conf` and are installed to `/etc/tuned/profiles/`. Root-level scripts in `scripts/` are fanned out by `PKGBUILD` to every profile during packaging. PPD mapping is configured by the install script because `tuned-ppd` owns `/etc/tuned/ppd.conf`.
+This repository packages CachyOS-specific TuneD profiles for Arch/AUR as `tuned-cachyos-profiles-git`. The package entry points are `PKGBUILD`, `.SRCINFO`, and `tuned-cachyos-profiles-git.install`. Profile sources live in `etc/tuned/profiles/<profile-name>/tuned.conf` and are installed to `/etc/tuned/profiles/`. Root-level scripts in `scripts/` are fanned out by `PKGBUILD` to every profile during packaging.
+
+PPD mapping lives in `/etc/tuned/ppd.conf`, which is owned by the `tuned-ppd` package. This package does not ship that file as a payload — instead, `tuned-cachyos-profiles-git.install` writes the CachyOS mapping into it on install and refreshes it on every upgrade. The file is stamped with `# managed by tuned-cachyos-profiles-git` so the install script can distinguish it from a foreign config (foreign files get backed up to `ppd.conf.tuned-cachyos.bak` first). On removal the backup is restored and deleted; if none exists, ppd.conf is removed.
 
 ## Build, Test, and Development Commands
 
@@ -20,7 +22,9 @@ Use shell-compatible style in scripts: two-space indentation inside functions an
 
 ## Testing Guidelines
 
-There is no automated test suite. Validate by building with `makepkg -si`, switching profiles with `tuned-adm`, and checking CPU governor, boost, EPP, and relevant sysctl values. For packaging changes, inspect generated package contents before release and refresh `.SRCINFO`. Confirm the package does not own `/etc/tuned/ppd.conf`; `tuned-ppd` owns it.
+There is no automated test suite. Validate by building with `makepkg -si`, switching profiles with `tuned-adm`, and checking CPU governor, boost, EPP, and relevant sysctl values. For packaging changes, inspect generated package contents before release and refresh `.SRCINFO`.
+
+The package does not own `/etc/tuned/ppd.conf` as a pacman file — `tuned-ppd` owns it. The install script manages it instead. When testing install/upgrade/remove behavior, verify that: ppd.conf is written with the sentinel comment on install; ppd.conf is refreshed on upgrade; a foreign ppd.conf is backed up before being overwritten; the backup is restored and deleted on remove.
 
 ## Commit & Pull Request Guidelines
 

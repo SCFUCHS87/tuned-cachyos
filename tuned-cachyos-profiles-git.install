@@ -2,70 +2,73 @@ _configure_ppd() {
   ppd_conf=/etc/tuned/ppd.conf
   backup_conf=/etc/tuned/ppd.conf.tuned-cachyos.bak
 
-  if [ -e "$ppd_conf" ] && ! grep -q 'laptop-battery-powersaver-cachyos' "$ppd_conf"; then
-    if [ ! -e "$backup_conf" ]; then
-      cp -a "$ppd_conf" "$backup_conf"
-    fi
+  # Back up any ppd.conf that is not ours before overwriting
+  if [ -e "$ppd_conf" ] && ! grep -q 'managed by tuned-cachyos-profiles-git' "$ppd_conf"; then
+    cp -a "$ppd_conf" "$backup_conf"
   fi
 
   install -d /etc/tuned
-  cat > "$ppd_conf" <<'EOF'
+  cat > "$ppd_conf" << 'EOF'
+# managed by tuned-cachyos-profiles-git
 [main]
-# The default PPD profile
 default=balanced
 battery_detection=true
 sysfs_acpi_monitor=false
 
 [profiles]
-# PPD = TuneD
+# PPD state = TuneD profile (on AC)
 power-saver=laptop-ac-powersaver-cachyos
 balanced=laptop-ac-balanced-cachyos
 performance=throughput-performance-cachyos
 
 [battery]
-# PPD = TuneD
+# PPD state = TuneD profile (on battery)
 power-saver=laptop-battery-powersaver-cachyos
 balanced=battery-balanced-cachyos
 performance=balanced-cachyos
 EOF
 }
 
-_print_post_install() {
-  cat <<'EOF'
+post_install() {
+  _configure_ppd
+  cat << 'EOF'
 ==> tuned-cachyos-profiles installed
+
+  KDE PowerDevil / PPD mapping written to:
+    /etc/tuned/ppd.conf
+
+  If an existing non-CachyOS ppd.conf was found, it was backed up to:
+    /etc/tuned/ppd.conf.tuned-cachyos.bak
 
   Enable TuneD if not already running:
     sudo systemctl enable --now tuned
 
-  KDE PowerDevil / PPD mapping has been configured in:
-    /etc/tuned/ppd.conf
+  TuneD will pick up the active PPD state automatically via ppd.conf.
+  No manual profile switching needed if you use KDE PowerDevil.
 
-  If an existing non-CachyOS ppd.conf was present, it was backed up to:
-    /etc/tuned/ppd.conf.tuned-cachyos.bak
-
-  To activate a profile manually:
-    sudo tuned-adm profile <profile-name>
-    tuned-adm list
+  NOTE: /etc/tuned/ppd.conf is overwritten on each upgrade to keep
+  mappings current. Re-apply any custom changes after upgrading.
 
   NOTE: VM tuning (swappiness, vfs_cache_pressure) was calibrated for
-  high-RAM systems (64 GB). Adjust the [sysctl] section in any profile
-  at /etc/tuned/profiles/<profile>/tuned.conf if needed. Your edits
-  are preserved on upgrades via pacman's .pacnew mechanism.
+  64 GB RAM. Edit the [sysctl] section in any profile at
+  /etc/tuned/profiles/<profile>/tuned.conf if needed. Your edits
+  survive upgrades via pacman's .pacnew mechanism.
 
-  Verify settings took effect:
+  Verify settings:
+    tuned-adm active
     cat /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference | sort -u
     sysctl vm.swappiness
 EOF
 }
 
-post_install() {
-  _configure_ppd
-  _print_post_install
-}
-
 post_upgrade() {
   _configure_ppd
-  _print_post_install
+  cat << 'EOF'
+==> tuned-cachyos-profiles upgraded
+
+  /etc/tuned/ppd.conf has been refreshed with the current CachyOS
+  mappings. If you had custom changes to ppd.conf, re-apply them now.
+EOF
 }
 
 post_remove() {
@@ -74,17 +77,19 @@ post_remove() {
 
   if [ -e "$backup_conf" ]; then
     cp -a "$backup_conf" "$ppd_conf"
-    cat <<'EOF'
-==> Restored previous /etc/tuned/ppd.conf from:
-    /etc/tuned/ppd.conf.tuned-cachyos.bak
-EOF
-  else
-    cat <<'EOF'
+    rm -f "$backup_conf"
+    cat << 'EOF'
 ==> tuned-cachyos-profiles removed
 
-  /etc/tuned/ppd.conf may still reference CachyOS TuneD profiles.
-  Reinstall tuned-ppd or edit /etc/tuned/ppd.conf if KDE PowerDevil
-  profile switching stops working.
+  Restored previous /etc/tuned/ppd.conf from backup.
+EOF
+  else
+    rm -f "$ppd_conf"
+    cat << 'EOF'
+==> tuned-cachyos-profiles removed
+
+  /etc/tuned/ppd.conf removed. tuned-ppd will recreate a default
+  mapping on next start, or reinstall tuned-ppd to restore defaults.
 EOF
   fi
 }

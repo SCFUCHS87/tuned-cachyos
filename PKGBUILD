@@ -1,6 +1,6 @@
 # Maintainer: Steven Fuchs <stevencfuchs@icloud.com>
 pkgname=tuned-cachyos-profiles-git
-pkgver=0.1.r0.g0000000
+pkgver=r11.d3064bf
 pkgrel=1
 pkgdesc="CachyOS-flavored TuneD profiles installed under /etc/tuned/profiles/"
 arch=('any')
@@ -25,8 +25,13 @@ backup=(
 
 pkgver() {
   cd "$srcdir/tuned-cachyos"
-  # vX.Y.Z-123-gabcdef -> X.Y.Z.123.gabcdef ; falls back to commit-ish if no tags
-  git describe --tags --long --always --dirty 2>/dev/null | sed 's/^v//; s/-/./g'
+  # With tags: vX.Y.Z-N-gHASH -> X.Y.Z.N.gHASH
+  # Without tags: rCOUNT.HASH
+  if git describe --tags --long 2>/dev/null | grep -q .; then
+    git describe --tags --long 2>/dev/null | sed 's/^v//; s/-/./g'
+  else
+    printf 'r%s.%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+  fi
 }
 
 _copy_file() {

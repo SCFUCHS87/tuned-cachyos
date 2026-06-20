@@ -1,0 +1,21 @@
+pkgbase = tuned-cachyos-profiles-git
+	pkgdesc = CachyOS-flavored TuneD profiles installed under /etc/tuned/profiles/
+	pkgver = r11.d3064bf
+	pkgrel = 1
+	url = https://github.com/SCFUCHS87/tuned-cachyos
+	install = tuned-cachyos-profiles-git.install
+	arch = any
+	license = MIT
+	makedepends = git
+	depends = tuned
+	options = !strip
+	backup = etc/tuned/profiles/balanced-cachyos/tuned.conf
+	backup = etc/tuned/profiles/battery-balanced-cachyos/tuned.conf
+	backup = etc/tuned/profiles/laptop-ac-balanced-cachyos/tuned.conf
+	backup = etc/tuned/profiles/laptop-ac-powersaver-cachyos/tuned.conf
+	backup = etc/tuned/profiles/laptop-battery-powersaver-cachyos/tuned.conf
+	backup = etc/tuned/profiles/throughput-performance-cachyos/tuned.conf
+	source = git+https://github.com/SCFUCHS87/tuned-cachyos
+	sha256sums = SKIP
+
+pkgname = tuned-cachyos-profiles-git

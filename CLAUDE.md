@@ -52,11 +52,11 @@ KDE PowerDevil defaults: AC → `performance`, Battery → `power-saver`.
 
 ## Scripts
 
-`scripts/` at the repo root is fanned out by `PKGBUILD` to **every** profile's `scripts/` subdirectory during packaging. Currently contains `pci-pm.sh`, which sets PCI/USB runtime PM and `snd_hda_intel` audio power save on profile start, and restores `on` on stop. Profiles reference it via `${i:PROFILE_DIR}/scripts/pci-pm.sh`.
+`scripts/` at the repo root is fanned out by `PKGBUILD` to **every** profile's `scripts/` subdirectory during packaging. Currently contains `pci-pm.sh`, which sets PCI/USB runtime PM on profile start and restores `on` on stop. Profiles reference it via `${i:PROFILE_DIR}/scripts/pci-pm.sh`. The `[audio] timeout=` plugin in each `tuned.conf` handles `snd_hda_intel` separately — pci-pm.sh does not touch it.
 
 For manual installs (no `makepkg`), copy `scripts/pci-pm.sh` to each profile's `scripts/` dir by hand:
 ```bash
-for p in battery-balanced-cachyos laptop-ac-balanced-cachyos laptop-ac-powersaver-cachyos laptop-battery-powersaver-cachyos; do
+for p in balanced-cachyos battery-balanced-cachyos laptop-ac-balanced-cachyos laptop-ac-powersaver-cachyos laptop-battery-powersaver-cachyos; do
   sudo install -Dm755 scripts/pci-pm.sh /etc/tuned/profiles/$p/scripts/pci-pm.sh
 done
 ```
@@ -65,7 +65,7 @@ Per-profile-specific scripts go under `etc/tuned/profiles/<name>/scripts/` inste
 
 ## Key design decisions
 
-- **`turbo=1` is intentional even in power-saving profiles.** On AMD Ryzen APUs, disabling turbo causes hangs and crashes when the iGPU and CPU compete for the shared power budget. The "race to sleep" principle means short bursts are more efficient than throttled-and-hung states. See `CHANGELOG-stability-fixes.md` for the full rationale.
+- **`boost=1` is intentional even in power-saving profiles.** On AMD Ryzen APUs, disabling turbo causes hangs and crashes when the iGPU and CPU compete for the shared power budget. The "race to sleep" principle means short bursts are more efficient than throttled-and-hung states. Note: the TuneD CPU plugin option is `boost=` (not `turbo=` — that is silently ignored).
 - **Driver is `amd-pstate-epp`** (confirmed on Ryzen 5 7535HS). Only `powersave` and `performance` governors are available — `schedutil` is not valid and will warn/no-op. Use `governor=powersave` for all efficiency profiles, `governor=performance` only for `throughput-performance-cachyos`. The primary power control is `energy_performance_preference=` (not `energy_perf_bias=`, which is Intel-only). `max_perf_pct`/`min_perf_pct` still work as hard frequency bounds on top of EPP.
 - All `tuned.conf` files are in pacman's `backup=()` list so user edits survive package upgrades as `.pacnew` files.
 

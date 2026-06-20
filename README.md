@@ -46,7 +46,7 @@ KDE PowerDevil defaults to **performance on AC** and **power-saver on battery**,
 
 ## AMD-specific design decisions
 
-**`turbo=1` in every profile, including powersavers.** On AMD Ryzen APUs the CPU and iGPU share a power budget. Disabling turbo causes the iGPU to grab the headroom the CPU gave up, which creates resource contention and can cause hangs. The race-to-sleep principle applies: a short turbo burst that finishes quickly uses less total energy than a throttled CPU that runs longer.
+**`boost=1` in every profile, including powersavers.** On AMD Ryzen APUs the CPU and iGPU share a power budget. Disabling turbo causes the iGPU to grab the headroom the CPU gave up, which creates resource contention and can cause hangs. The race-to-sleep principle applies: a short turbo burst that finishes quickly uses less total energy than a throttled CPU that runs longer. Note: TuneD's CPU plugin uses `boost=` — the key `turbo=` is not recognized and is silently ignored.
 
 **`energy_performance_preference=` not `energy_perf_bias=`.** The `energy_perf_bias` key in TuneD writes to an Intel MSR. On systems running `amd-pstate-epp` it is silently ignored. These profiles use the correct AMD key and set values that map cleanly to each profile's role.
 

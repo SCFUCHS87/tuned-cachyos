@@ -1,12 +1,12 @@
 # Maintainer: Steven Fuchs <stevencfuchs@icloud.com>
 pkgname=tuned-cachyos-profiles-git
-pkgver=r15.9ebe2fb
+pkgver=r19.2a065d7
 pkgrel=1
 pkgdesc="CachyOS-flavored TuneD profiles installed under /etc/tuned/profiles/"
 arch=('any')
 url="https://github.com/SCFUCHS87/tuned-cachyos"
 license=('MIT')
-depends=('tuned')
+depends=('tuned' 'tuned-ppd')
 makedepends=('git')
 source=("git+$url")
 sha256sums=('SKIP')
@@ -15,6 +15,7 @@ options=('!strip')  # all text/scripts; nothing to strip
 
 # Preserve user edits to tuned.conf under /etc (pacman shows .pacnew on updates)
 backup=(
+  'etc/tuned/ppd.conf'
   'etc/tuned/profiles/balanced-cachyos/tuned.conf'
   'etc/tuned/profiles/battery-balanced-cachyos/tuned.conf'
   'etc/tuned/profiles/laptop-ac-balanced-cachyos/tuned.conf'
@@ -45,6 +46,9 @@ _copy_file() {
 
 package() {
   cd "$srcdir/tuned-cachyos"
+
+  # PPD profile mapping for KDE PowerDevil
+  install -Dm644 etc/tuned/ppd.conf "$pkgdir/etc/tuned/ppd.conf"
 
   local src_profiles="$PWD/etc/tuned/profiles"
   local dest_root="$pkgdir/etc/tuned/profiles"

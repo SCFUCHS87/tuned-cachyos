@@ -26,11 +26,16 @@ Thumbs.db
 
 # --- Build and package artifacts ---
 *.tar
+*.tar.*
 *.gz
 *.zip
 *.xz
 *.deb
 *.rpm
+# makepkg working directories and output
+src/
+pkg/
+tuned-cachyos/
 
 # --- Python or shell environments (if used for testing) ---
 venv/

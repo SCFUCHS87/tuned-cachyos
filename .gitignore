@@ -45,3 +45,4 @@ __pycache__/
 # --- Custom tuned paths ---
 /usr/lib/tuned/profiles/*
 !profiles/*-cachyos/
+CHANGELOG-stability-fixes.md

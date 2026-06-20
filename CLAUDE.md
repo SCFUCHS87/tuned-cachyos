@@ -18,7 +18,7 @@ Manual apply without packaging (for quick testing):
 sudo cp -r etc/tuned/profiles/* /etc/tuned/profiles/
 
 # Configure ppd.conf (must be run from the repo root):
-sudo sh -c '. ./tuned-cachyos-profiles-git.install; _configure_ppd'
+sudo sh -c '. ./tuned-cachyos-profiles-git.install; _configure_ppd install'
 
 sudo tuned-adm profile <profile-name>
 tuned-adm active
@@ -60,7 +60,7 @@ KDE PowerDevil defaults: AC → `performance`, Battery → `power-saver`.
 
 For manual installs (no `makepkg`), copy `scripts/pci-pm.sh` to each profile's `scripts/` dir by hand:
 ```bash
-for p in balanced-cachyos battery-balanced-cachyos laptop-ac-balanced-cachyos laptop-ac-powersaver-cachyos laptop-battery-powersaver-cachyos; do
+for p in balanced-cachyos battery-balanced-cachyos laptop-ac-balanced-cachyos laptop-ac-powersaver-cachyos laptop-battery-powersaver-cachyos throughput-performance-cachyos; do
   sudo install -Dm755 scripts/pci-pm.sh /etc/tuned/profiles/$p/scripts/pci-pm.sh
 done
 ```

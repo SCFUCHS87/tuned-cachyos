@@ -1,9 +1,21 @@
 _configure_ppd() {
+  mode=$1
   ppd_conf=/etc/tuned/ppd.conf
   backup_conf=/etc/tuned/ppd.conf.tuned-cachyos.bak
 
-  # Back up any ppd.conf that is not ours before overwriting
-  if [ -e "$ppd_conf" ] && ! grep -q 'managed by tuned-cachyos-profiles-git' "$ppd_conf"; then
+  if [ -e "$ppd_conf" ] && grep -q 'managed by tuned-cachyos-profiles-git' "$ppd_conf"; then
+    return 0
+  fi
+
+  if [ "$mode" = upgrade ] && [ -e "$ppd_conf" ]; then
+    cat << 'EOF'
+==> Existing /etc/tuned/ppd.conf is not managed by tuned-cachyos-profiles-git.
+    Leaving it untouched to preserve local changes.
+EOF
+    return 0
+  fi
+
+  if [ -e "$ppd_conf" ] && [ ! -e "$backup_conf" ]; then
     cp -a "$ppd_conf" "$backup_conf"
   fi
 
@@ -30,14 +42,14 @@ EOF
 }
 
 post_install() {
-  _configure_ppd
+  _configure_ppd install
   cat << 'EOF'
 ==> tuned-cachyos-profiles installed
 
   KDE PowerDevil / PPD mapping written to:
     /etc/tuned/ppd.conf
 
-  If an existing non-CachyOS ppd.conf was found, it was backed up to:
+  If an existing non-CachyOS ppd.conf was found, it was backed up once to:
     /etc/tuned/ppd.conf.tuned-cachyos.bak
 
   Enable TuneD if not already running:
@@ -46,8 +58,8 @@ post_install() {
   TuneD will pick up the active PPD state automatically via ppd.conf.
   No manual profile switching needed if you use KDE PowerDevil.
 
-  NOTE: /etc/tuned/ppd.conf is overwritten on each upgrade to keep
-  mappings current. Re-apply any custom changes after upgrading.
+  NOTE: Existing CachyOS-managed ppd.conf files are preserved on upgrade
+  so local mapping edits are not overwritten.
 
   NOTE: VM tuning (swappiness, vfs_cache_pressure) was calibrated for
   64 GB RAM. Edit the [sysctl] section in any profile at
@@ -62,12 +74,12 @@ EOF
 }
 
 post_upgrade() {
-  _configure_ppd
+  _configure_ppd upgrade
   cat << 'EOF'
 ==> tuned-cachyos-profiles upgraded
 
-  /etc/tuned/ppd.conf has been refreshed with the current CachyOS
-  mappings. If you had custom changes to ppd.conf, re-apply them now.
+  CachyOS-managed /etc/tuned/ppd.conf files are preserved on upgrade.
+  Non-managed ppd.conf files are left untouched to protect local changes.
 EOF
 }
 
@@ -76,20 +88,37 @@ post_remove() {
   backup_conf=/etc/tuned/ppd.conf.tuned-cachyos.bak
 
   if [ -e "$backup_conf" ]; then
-    cp -a "$backup_conf" "$ppd_conf"
-    rm -f "$backup_conf"
-    cat << 'EOF'
+    if [ ! -e "$ppd_conf" ] || grep -q 'managed by tuned-cachyos-profiles-git' "$ppd_conf"; then
+      cp -a "$backup_conf" "$ppd_conf"
+      rm -f "$backup_conf"
+      cat << 'EOF'
 ==> tuned-cachyos-profiles removed
 
   Restored previous /etc/tuned/ppd.conf from backup.
 EOF
-  else
+    else
+      cat << 'EOF'
+==> tuned-cachyos-profiles removed
+
+  Left /etc/tuned/ppd.conf untouched because it is not managed by
+  tuned-cachyos-profiles-git. The original backup remains at:
+    /etc/tuned/ppd.conf.tuned-cachyos.bak
+EOF
+    fi
+  elif [ -e "$ppd_conf" ] && grep -q 'managed by tuned-cachyos-profiles-git' "$ppd_conf"; then
     rm -f "$ppd_conf"
     cat << 'EOF'
 ==> tuned-cachyos-profiles removed
 
-  /etc/tuned/ppd.conf removed. tuned-ppd will recreate a default
-  mapping on next start, or reinstall tuned-ppd to restore defaults.
+  Removed the CachyOS-managed /etc/tuned/ppd.conf.
+  Reinstall tuned-ppd if you want its default mapping restored.
+EOF
+  else
+    cat << 'EOF'
+==> tuned-cachyos-profiles removed
+
+  Left /etc/tuned/ppd.conf untouched because it was not recognized as
+  managed by tuned-cachyos-profiles-git and no backup was available.
 EOF
   fi
 }

@@ -35,7 +35,7 @@ cat /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference | sort -u
 
 Each profile is a single `tuned.conf` that `include=`s an upstream TuneD base profile, then overrides specific sections (`[cpu]`, `[vm]`, `[sysctl]`).
 
-Profiles are wired to KDE PowerDevil via `/etc/tuned/ppd.conf`, which maps PPD states to TuneD profiles separately for AC and battery. `tuned-ppd` owns that file, so this package does not ship it as a payload file. Instead, `tuned-cachyos-profiles-git.install` writes the mapping on install and refreshes it on every upgrade. The file is stamped with `# managed by tuned-cachyos-profiles-git` so the install script can distinguish it from a foreign config — foreign files are backed up to `/etc/tuned/ppd.conf.tuned-cachyos.bak` before being overwritten. On removal the backup is restored (and the backup file deleted); if no backup exists, ppd.conf is removed and tuned-ppd will recreate a default on next start.
+Profiles are wired to KDE PowerDevil via `/etc/tuned/ppd.conf`, which maps PPD states to TuneD profiles separately for AC and battery. `tuned-ppd` owns that file, so this package does not ship it as a payload file. Instead, `tuned-cachyos-profiles-git.install` writes the mapping on install. The file is stamped with `# managed by tuned-cachyos-profiles-git` so the install script can distinguish it from a foreign config; foreign files are backed up once to `/etc/tuned/ppd.conf.tuned-cachyos.bak` before being replaced on install. On upgrade, managed files are preserved and non-managed files are left untouched. On removal, backups are restored only when the current file is missing or managed; unrelated current files are preserved.
 
 | PPD state | On AC | On battery |
 |---|---|---|

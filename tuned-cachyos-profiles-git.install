@@ -1,10 +1,27 @@
 post_install() {
   cat <<'EOF'
-==> CachyOS TuneD profiles installed under /etc/tuned/profiles
-• Enable tuned (if not already):  sudo systemctl enable --now tuned
-• List profiles:                   tuned-adm list
-• Activate a profile:              sudo tuned-adm profile <profile-name>
-Note: tuned.conf files are in pacman's backup list, so your edits are preserved.
+==> tuned-cachyos-profiles installed
+
+  Enable TuneD if not already running:
+    sudo systemctl enable --now tuned
+
+  If you use KDE with PowerDevil, profile switching is automatic —
+  KDE's power settings (performance / balanced / power-saver) map to
+  the correct profile for your AC or battery state via /etc/tuned/ppd.conf.
+  No manual activation needed.
+
+  To activate a profile manually:
+    sudo tuned-adm profile <profile-name>
+    tuned-adm list
+
+  NOTE: VM tuning (swappiness, vfs_cache_pressure) was calibrated for
+  high-RAM systems (64 GB). Adjust the [sysctl] section in any profile
+  at /etc/tuned/profiles/<profile>/tuned.conf if needed. Your edits
+  are preserved on upgrades via pacman's .pacnew mechanism.
+
+  Verify settings took effect:
+    cat /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference | sort -u
+    sysctl vm.swappiness
 EOF
 }
 

@@ -56,7 +56,7 @@ KDE PowerDevil defaults: AC → `performance`, Battery → `power-saver`.
 
 ## Scripts
 
-`scripts/` at the repo root is fanned out by `PKGBUILD` to **every** profile's `scripts/` subdirectory during packaging. Currently contains `pci-pm.sh`, which sets PCI/USB runtime PM on profile start and restores `on` on stop. Profiles reference it via `${i:PROFILE_DIR}/scripts/pci-pm.sh`. The `[audio] timeout=` plugin in each `tuned.conf` handles `snd_hda_intel` separately — pci-pm.sh does not touch it.
+`scripts/` at the repo root is fanned out by `PKGBUILD` to **every** profile's `scripts/` subdirectory during packaging. Currently contains `pci-pm.sh`, which sets PCI/USB runtime PM on profile start and restores `on` on stop. It deliberately skips the WiFi driver (`ath12k_wifi7_pci`), all `xhci_hcd` controllers, and USB devices with an HID interface: runtime-suspending the AMD USB4 xHCI controllers drops wireless mouse receivers off the bus. Profiles reference it via `${i:PROFILE_DIR}/scripts/pci-pm.sh`. The `[audio] timeout=` plugin in each `tuned.conf` handles `snd_hda_intel` separately — pci-pm.sh does not touch it.
 
 For manual installs (no `makepkg`), copy `scripts/pci-pm.sh` to each profile's `scripts/` dir by hand:
 ```bash

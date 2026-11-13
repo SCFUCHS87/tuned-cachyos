@@ -7,9 +7,15 @@ case "$1" in
       dev="${f%/power/control}"
       driver=$(basename "$(readlink -f "$dev/driver" 2>/dev/null)" 2>/dev/null)
       [ "$driver" = "ath12k_wifi7_pci" ] && continue
+      # AMD USB4 xHCI controllers drop attached devices (wireless mouse
+      # receivers) after runtime suspend/wake.
+      [ "$driver" = "xhci_hcd" ] && continue
       echo auto > "$f" 2>/dev/null
     done
     for f in /sys/bus/usb/devices/*/power/control; do
+      dev="${f%/power/control}"
+      # Keep HID devices (mice, keyboards, receivers) awake.
+      grep -qx 03 "$dev"/*/bInterfaceClass 2>/dev/null && continue
       echo auto > "$f" 2>/dev/null
     done
     ;;

@@ -10,21 +10,21 @@ case "$1" in
       # AMD USB4 xHCI controllers drop attached devices (wireless mouse
       # receivers) after runtime suspend/wake.
       [ "$driver" = "xhci_hcd" ] && continue
-      echo auto > "$f" 2>/dev/null
+      echo auto >"$f" 2>/dev/null
     done
     for f in /sys/bus/usb/devices/*/power/control; do
       dev="${f%/power/control}"
       # Keep HID devices (mice, keyboards, receivers) awake.
       grep -qx 03 "$dev"/*/bInterfaceClass 2>/dev/null && continue
-      echo auto > "$f" 2>/dev/null
+      echo auto >"$f" 2>/dev/null
     done
     ;;
   stop)
     for f in /sys/bus/pci/devices/*/power/control; do
-      echo on > "$f" 2>/dev/null
+      echo on >"$f" 2>/dev/null
     done
     for f in /sys/bus/usb/devices/*/power/control; do
-      echo on > "$f" 2>/dev/null
+      echo on >"$f" 2>/dev/null
     done
     ;;
 esac

@@ -11,7 +11,7 @@ makedepends=('git')
 source=("git+$url")
 sha256sums=('SKIP')
 install=$pkgname.install
-options=('!strip')  # all text/scripts; nothing to strip
+options=('!strip') # all text/scripts; nothing to strip
 
 # Preserve user edits to tuned.conf under /etc (pacman shows .pacnew on updates)
 backup=(

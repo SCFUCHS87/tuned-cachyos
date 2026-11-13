@@ -8,7 +8,7 @@ _configure_ppd() {
   fi
 
   if [ "$mode" = upgrade ] && [ -e "$ppd_conf" ]; then
-    cat << 'EOF'
+    cat <<'EOF'
 ==> Existing /etc/tuned/ppd.conf is not managed by tuned-cachyos-profiles-git.
     Leaving it untouched to preserve local changes.
 EOF
@@ -20,7 +20,7 @@ EOF
   fi
 
   install -d /etc/tuned
-  cat > "$ppd_conf" << 'EOF'
+  cat >"$ppd_conf" <<'EOF'
 # managed by tuned-cachyos-profiles-git
 [main]
 default=balanced
@@ -43,7 +43,7 @@ EOF
 
 post_install() {
   _configure_ppd install
-  cat << 'EOF'
+  cat <<'EOF'
 ==> tuned-cachyos-profiles installed
 
   KDE PowerDevil / PPD mapping written to:
@@ -75,7 +75,7 @@ EOF
 
 post_upgrade() {
   _configure_ppd upgrade
-  cat << 'EOF'
+  cat <<'EOF'
 ==> tuned-cachyos-profiles upgraded
 
   CachyOS-managed /etc/tuned/ppd.conf files are preserved on upgrade.
@@ -91,13 +91,13 @@ post_remove() {
     if [ ! -e "$ppd_conf" ] || grep -q 'managed by tuned-cachyos-profiles-git' "$ppd_conf"; then
       cp -a "$backup_conf" "$ppd_conf"
       rm -f "$backup_conf"
-      cat << 'EOF'
+      cat <<'EOF'
 ==> tuned-cachyos-profiles removed
 
   Restored previous /etc/tuned/ppd.conf from backup.
 EOF
     else
-      cat << 'EOF'
+      cat <<'EOF'
 ==> tuned-cachyos-profiles removed
 
   Left /etc/tuned/ppd.conf untouched because it is not managed by
@@ -107,14 +107,14 @@ EOF
     fi
   elif [ -e "$ppd_conf" ] && grep -q 'managed by tuned-cachyos-profiles-git' "$ppd_conf"; then
     rm -f "$ppd_conf"
-    cat << 'EOF'
+    cat <<'EOF'
 ==> tuned-cachyos-profiles removed
 
   Removed the CachyOS-managed /etc/tuned/ppd.conf.
   Reinstall tuned-ppd if you want its default mapping restored.
 EOF
   else
-    cat << 'EOF'
+    cat <<'EOF'
 ==> tuned-cachyos-profiles removed
 
   Left /etc/tuned/ppd.conf untouched because it was not recognized as
